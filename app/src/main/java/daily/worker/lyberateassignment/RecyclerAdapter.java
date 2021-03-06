@@ -99,7 +99,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         public TitleViewHolder(View v) {
             super(v);
-            this.txtTitle = (TextView) v.findViewById(R.id.textHeader);
+            this.txtTitle = (TextView) v.findViewById(R.id.Header);
 
         }
     }

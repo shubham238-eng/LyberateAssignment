@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         android:textSize="24dp"
         android:gravity="center"
-        android:id="@+id/textHeader"
+        android:id="@+id/Header"
         android:background="@drawable/round_corner_grey"
         />
 

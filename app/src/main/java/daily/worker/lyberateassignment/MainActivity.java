@@ -1,17 +1,16 @@
 package daily.worker.lyberateassignment;
 
 
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.app.ProgressDialog;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -21,49 +20,49 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import daily.worker.lyberateassignment.BackGround.GroupingList;
 import daily.worker.lyberateassignment.model.Result;
-import daily.worker.lyberateassignment.model.songsEntity;
+import daily.worker.lyberateassignment.model.SongsEntity;
 
 public class MainActivity extends AppCompatActivity {
 
-    String BASE_URL="https://itunes.apple.com/search?term=";
-    String query;
-    List<songsEntity> result;
+    final String BASE_URL="https://itunes.apple.com/search?term=";
+    List<SongsEntity> result;
     RecyclerView recyclerView;
-    EditText editSearch;
-    ImageView btnSearch;
-    TextView textError;
-    ProgressDialog progressDialog;
+    EditText Searchtext;
+    EditText Limit;
+    TextView Error;
+    Button Search;
     RecyclerAdapter recyclerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        init(); //Initialize views
 
+        initialization();//initialization variables
 
-        //OnclickListener for search
-        btnSearch.setOnClickListener(new View.OnClickListener() {
+        Search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                String userInput=editSearch.getText().toString();
+                String userInput=Searchtext.getText().toString().trim();
+                String limit = Limit.getText().toString().trim();
+                if(limit.length() == 0 ){
+                    limit = "25";
+                }
 
                 if(userInput.equals(""))
-                    Toast.makeText(MainActivity.this, "Enter Music Name", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Enter Valid Text", Toast.LENGTH_SHORT).show();
                 else
                 {
-                    progressDialog.show();
-                    textError.setVisibility(View.GONE);  //textView for showing error if Result Not found
-                    editSearch.setText("");
-                    modifyInput(userInput); //In this function we can change user input to URL form ex: honey singh is changed to honey+singh
-                    getData();//this is used to get data from API using volley library
+
+                    Error.setVisibility(View.GONE);
+                    Searchtext.setText("");
+                    Limit.setText("");
+                    showData(userInput,limit);
 
                 }
 
@@ -73,49 +72,48 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    void init()
+    void initialization()
     {
-        editSearch=findViewById(R.id.editSearch);
-        btnSearch=findViewById(R.id.btnSearch);
-        textError=findViewById(R.id.textError);
+        Searchtext=findViewById(R.id.editSearch);
+        Error=findViewById(R.id.textError);
         recyclerView=findViewById(R.id.rView);
+        Search = findViewById(R.id.btnSearch);
+        Limit = findViewById(R.id.limit);
         recyclerAdapter = RecyclerAdapter.getRecyclerAdapter();
         recyclerView.setAdapter(recyclerAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        progressDialog=new ProgressDialog(this);
-        progressDialog.setTitle("Please Wait");
 
     }
 
-    void modifyInput(String str)
-    {
-        char[] temp=str.toCharArray();
 
-        for(int i=0;i<str.length();i++)
+
+
+
+    void showData(String userInput,String limit)
+    {
+        final Gson gson = new Gson();
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        char[] temp=userInput.toCharArray();
+
+        for(int i=0;i<userInput.length();i++)
         {
-            if(str.charAt(i)==' ')
+            if(userInput.charAt(i)==' ')
                 temp[i]='+';
         }
 
-        query=String.valueOf(temp);
-    }
+        String URL = BASE_URL + String.valueOf(temp) + "&entity=musicTrack&limit="+ limit;
 
-    void getData()
-    { final Gson gson = new Gson();
-        RequestQueue queue = Volley.newRequestQueue(this);
-
-
-        String url= BASE_URL+query+"&entity=musicTrack&limit=25";
-        StringRequest request= new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+        StringRequest request= new StringRequest(Request.Method.GET, URL, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Result model= gson.fromJson(response,Result.class);
 
                 result= model.getResults();
-                progressDialog.dismiss();
+
                 if(result.size()==0)
                 {
-                    textError.setVisibility(View.VISIBLE);
+                    Error.setVisibility(View.VISIBLE);
                 }
 
                 new GroupingList(recyclerAdapter).execute(result);
@@ -135,6 +133,5 @@ public class MainActivity extends AppCompatActivity {
         queue.add(request);
 
     }
-
 
 }
